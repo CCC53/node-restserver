@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.get('/usuario', function(req, res) {
-    res.json('get Usuario');
+    res.json('get Usuario local');
 });
 
 app.post('/usuario', function(req, res) {
