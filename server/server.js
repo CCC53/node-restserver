@@ -30,6 +30,8 @@ mongoose.connect(process.env.URLDB, {
     }
 });
 
+mongoose.Promise = global.Promise;
+
 app.listen(process.env.PORT, () => {
     console.log('Escuchando peticiones en el puerto:', process.env.PORT);
 });
