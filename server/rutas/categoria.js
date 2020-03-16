@@ -21,7 +21,7 @@ app.get('/categoria', verificarToken, async(req, res) => {
 app.get('/categoria/:id', verificarToken, async(req, res) => {
     try {
         let id = req.params.id;
-        categoriaDB = await Categoria.findById(id);
+        categoriaDB = await Categoria.findById(id).populate('usuario', 'nombre email').exec();
         if (!categoriaDB) {
             return res.status(404).json({
                 ok: false,
@@ -50,7 +50,7 @@ app.post('/categoria', verificarToken, async(req, res) => {
         categoriaDB = await categoria.save();
         res.json({
             ok: true,
-            categoria: catDB
+            categoria: categoriaDB
         });
     } catch (error) {
         res.status(500).json({
