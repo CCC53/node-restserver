@@ -62,9 +62,6 @@ app.get('/producto/buscar/:termino', verificarToken, async(req, res) => {
     }
 });
 
-
-
-
 app.post('/producto', verificarToken, async(req, res) => {
     try {
         let body = req.body
