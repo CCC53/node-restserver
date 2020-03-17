@@ -10,7 +10,6 @@ app.get('/producto', async(req, res) => {
         let limite = req.query.limite || 5;
         limite = Number(limite);
         let categorias = await Producto.find({ disponible: true }).skip(desde).limit(limite).populate('usuario categoria', 'nombre email nombre').exec();
-        let conteo = await Producto.count({ disponible: true });
         res.json({
             ok: true,
             categorias,
