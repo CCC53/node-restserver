@@ -29,7 +29,7 @@ app.get('/producto/:id', async(req, res) => {
         let id = req.params.id;
         let productoDB = await Producto.findById(id).populate('usuario categoria', 'nombre email descripcion').exec();
         if (!productoDB) {
-            return res.status(404).json({
+            return res.status(400).json({
                 ok: false,
                 message: 'Producto no encontrado'
             });
@@ -96,7 +96,7 @@ app.put('/producto/:id', verificarToken, async(req, res) => {
         let body = req.body;
         let productoDB = await Producto.findByIdAndUpdate(id, body, { new: true, runValidators: true });
         if (!productoDB) {
-            return res.status(404).json({
+            return res.status(400).json({
                 ok: false,
                 message: 'El producto no existe'
             });
@@ -121,7 +121,7 @@ app.delete('/producto/:id', async(req, res) => {
         };
         let productoBorrado = await Producto.findByIdAndUpdate(id, deshabilitar, { new: true, runValidators: true });
         if (!productoBorrado) {
-            return res.status(404).json({
+            return res.status(400).json({
                 ok: false,
                 message: 'El producto no fue encontrado'
             });
