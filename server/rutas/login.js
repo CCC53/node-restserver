@@ -5,18 +5,16 @@ const app = express();
 const Usuario = require('../models/usuario');
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.CLIENT_ID);
+const { check, validationResult, matchedData } = require('express-validator');
+const log = require('../services/apilogger');
 
-
-app.post('/login', (req, res) => {
-    let body = req.body;
-
-    Usuario.findOne({ email: body.email }, (error, usuarioDB) => {
-        if (error) {
-            return res.status(500).json({
-                ok: false,
-                error
-            });
-        }
+app.post('/login', [check('email').exists().withMessage('El email es obligatorio').isEmail().withMessage('Email invalido'),
+    check('password').exists().withMessage('La contraseña es obligatoria')
+], async(req, res) => {
+    try {
+        log.logger.info(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "body":"${JSON.stringify(req.body)}"`);
+        let body = req.body;
+        let usuarioDB = await Usuario.findOne({ email: body.email });
         if (!usuarioDB) {
             return res.status(400).json({
                 ok: false,
@@ -25,7 +23,6 @@ app.post('/login', (req, res) => {
                 }
             });
         }
-
         if (!bcrypt.compareSync(body.password, usuarioDB.password)) {
             return res.status(400).json({
                 ok: false,
@@ -42,12 +39,16 @@ app.post('/login', (req, res) => {
             usuario: usuarioDB,
             token
         });
-    });
-
-
+    } catch (error) {
+        log.logger.error(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "body":"${JSON.stringify(req.body)}, error: "${error}""`);
+        return res.status(500).json({
+            ok: false,
+            error
+        });
+    }
 });
 
-//COnfiguraciones de Google
+//Configuraciones de Google
 async function verify(token) {
     const ticket = await client.verifyIdToken({
         idToken: token,
@@ -64,25 +65,17 @@ async function verify(token) {
     }
 }
 
-
 app.post('/google', async(req, res) => {
-
-    let token = req.body.idtoken;
-
-    let googleUser = await verify(token).catch(error => {
-        return res.status(403).json({
-            ok: false,
-            error
-        });
-    });
-
-    Usuario.findOne({ email: googleUser.email }, (error, usuarioDB) => {
-        if (error) {
-            res.status(500).json({
+    try {
+        log.logger.info(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "body":"${JSON.stringify(req.body)}"`);
+        let token = req.body.idtoken;
+        let googleUser = await verify(token).catch(error => {
+            return res.status(403).json({
                 ok: false,
                 error
             });
-        }
+        });
+        let usuarioDB = await Usuario.findOne({ email: googleUser.email });
         if (usuarioDB) {
             //Si el usuario no esta registrado con google pero ya esta registrado
             if (usuarioDB.google === false) {
@@ -111,30 +104,25 @@ app.post('/google', async(req, res) => {
             usuario.email = googleUser.email;
             usuario.img = googleUser.img;
             usuario.google = true;
-            usuario.password = 'penny';
+            usuario.password = ':)';
 
-            usuario.save((error, usuarioDB) => {
-
-                if (error) {
-                    res.status(500).json({
-                        ok: false,
-                        error
-                    });
-                }
-
-                let token = jwt.sign({
-                    usuario: usuarioDB
-                }, process.env.SEED, { expiresIn: process.env.CADUCIDAD_TOKEN });
-                res.json({
-                    ok: true,
-                    usuario: usuarioDB,
-                    token
-                });
+            let usuarioDB = await usuario.save()
+            let token = jwt.sign({
+                usuario: usuarioDB
+            }, process.env.SEED, { expiresIn: process.env.CADUCIDAD_TOKEN });
+            res.json({
+                ok: true,
+                usuario: usuarioDB,
+                token
             });
-
         }
-    })
-
+    } catch (error) {
+        log.logger.error(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "body":"${JSON.stringify(req.body)}", "error":"${error}"`);
+        res.status(500).json({
+            ok: false,
+            error
+        });
+    }
 });
 
 

@@ -2,9 +2,11 @@ const express = require('express');
 const { verificarToken } = require('../middlewares/autenticacion');
 let app = express();
 let Producto = require('../models/producto');
+const log = require('../services/apilogger');
 
-app.get('/producto', async(req, res) => {
+app.get('/producto', verificarToken, async(req, res) => {
     try {
+        log.logger.info(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "query":"${JSON.stringify(req.query)}", "user":"${req.usuario._id}"}`);
         let desde = req.query.desde || 0;
         desde = Number(desde);
         let limite = req.query.limite || 5;
@@ -16,6 +18,7 @@ app.get('/producto', async(req, res) => {
             conteo
         });
     } catch (error) {
+        log.logger.error(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "query":"${JSON.stringify(req.query)}", "user":"${req.usuario._id}"}, error: "${error}"`);
         res.status(500).json({
             ok: false,
             error
@@ -23,8 +26,9 @@ app.get('/producto', async(req, res) => {
     }
 });
 
-app.get('/producto/:id', async(req, res) => {
+app.get('/producto/:id', verificarToken, async(req, res) => {
     try {
+        log.logger.info(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "params":"${JSON.stringify(req.params)}", "user":"${req.usuario._id}"}`);
         let id = req.params.id;
         let productoDB = await Producto.findById(id).populate('usuario categoria', 'nombre email descripcion').exec();
         if (!productoDB) {
@@ -38,6 +42,7 @@ app.get('/producto/:id', async(req, res) => {
             producto: productoDB
         });
     } catch (error) {
+        log.logger.error(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "params":"${JSON.stringify(req.params)}", "user":"${req.usuario._id}"}, error: "${error}"`);
         res.status(500).json({
             ok: false,
             error
@@ -47,6 +52,7 @@ app.get('/producto/:id', async(req, res) => {
 
 app.get('/producto/buscar/:termino', verificarToken, async(req, res) => {
     try {
+        log.logger.info(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "params":"${JSON.stringify(req.params)}", "user":"${req.usuario._id}"}`);
         let termino = req.params.termino;
         let regex = new RegExp(termino, 'i');
         let productos = await Producto.find({ nombre: regex }).populate('categoria', 'descripcion').exec();
@@ -55,6 +61,7 @@ app.get('/producto/buscar/:termino', verificarToken, async(req, res) => {
             productos
         });
     } catch (error) {
+        log.logger.error(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "params":"${JSON.stringify(req.params)}", "user":"${req.usuario._id}"}, error: "${error}"`);
         res.status(500).json({
             ok: false,
             error
@@ -64,6 +71,7 @@ app.get('/producto/buscar/:termino', verificarToken, async(req, res) => {
 
 app.post('/producto', verificarToken, async(req, res) => {
     try {
+        log.logger.info(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "body":"${JSON.stringify(req.body)}", "user":"${req.usuario._id}"}`);
         let body = req.body
         let producto = new Producto({
             nombre: body.nombre,
@@ -79,6 +87,7 @@ app.post('/producto', verificarToken, async(req, res) => {
             producto: productoDB
         });
     } catch (error) {
+        log.logger.error(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "body":"${JSON.stringify(req.body)}", "user":"${req.usuario._id}", error: "${error}"}`);
         res.status(500).json({
             ok: false,
             error
@@ -88,6 +97,7 @@ app.post('/producto', verificarToken, async(req, res) => {
 
 app.put('/producto/:id', verificarToken, async(req, res) => {
     try {
+        log.logger.info(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "params":"${JSON.stringify(req.params)}" ,"body":"${JSON.stringify(req.body)}", "user":"${req.usuario._id}"}`);
         let id = req.params.id;
         let body = req.body;
         let productoDB = await Producto.findByIdAndUpdate(id, body, { new: true, runValidators: true });
@@ -102,6 +112,7 @@ app.put('/producto/:id', verificarToken, async(req, res) => {
             producto: productoDB
         });
     } catch (error) {
+        log.logger.error(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "params":"${JSON.stringify(req.params)}" ,"body":"${JSON.stringify(req.body)}", "user":"${req.usuario._id}"}, error: "${error}"`);
         res.status(500).json({
             ok: false,
             error
@@ -109,8 +120,9 @@ app.put('/producto/:id', verificarToken, async(req, res) => {
     }
 });
 
-app.delete('/producto/:id', async(req, res) => {
+app.delete('/producto/:id', verificarToken, async(req, res) => {
     try {
+        log.logger.info(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "params":"${JSON.stringify(req.params)}", "user":"${req.usuario._id}"}`);
         let id = req.params.id;
         let deshabilitar = {
             disponible: false
@@ -128,6 +140,7 @@ app.delete('/producto/:id', async(req, res) => {
             mensaje: 'El producto ha sido borrado'
         });
     } catch (error) {
+        log.logger.error(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "params":"${JSON.stringify(req.params)}", "user":"${req.usuario._id}", error: "${error}"}`);
         res.status(500).json({
             ok: false,
             error
