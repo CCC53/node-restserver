@@ -15,7 +15,6 @@ app.get('/producto', verificarToken, async(req, res) => {
         res.json({
             ok: true,
             categorias,
-            conteo
         });
     } catch (error) {
         log.logger.error(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "query":"${JSON.stringify(req.query)}", "user":"${req.usuario._id}"}, error: "${error}"`);
