@@ -54,7 +54,7 @@ app.get('/producto/buscar/:termino', verificarToken, async(req, res) => {
         log.logger.info(`{"verb":"${req.method}", "path":"${req.baseUrl + req.path}", "params":"${JSON.stringify(req.params)}", "user":"${req.usuario._id}"}`);
         let termino = req.params.termino;
         let regex = new RegExp(termino, 'i');
-        let productos = await Producto.find({ nombre: regex }).populate('categoria', 'descripcion').exec();
+        let productos = await Producto.find({ nombre: regex }).populate('categoria usuario', 'descripcion nombre email').exec();
         res.json({
             ok: true,
             productos

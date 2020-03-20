@@ -27,7 +27,7 @@ app.get('/categoria/:id', verificarToken, async(req, res) => {
         let id = req.params.id;
         categoriaDB = await Categoria.findById(id).populate('usuario', 'nombre email').exec();
         if (!categoriaDB) {
-            return res.status(404).json({
+            return res.status(400).json({
                 ok: false,
                 message: "La categoria no existe"
             });
@@ -98,7 +98,7 @@ app.delete('/categoria/:id', [verificarToken, verificarRole], async(req, res) =>
         let id = req.params.id;
         categoriaBorrada = await Categoria.findByIdAndRemove(id, { new: true });
         if (!categoriaBorrada) {
-            return res.status(404).json({
+            return res.status(400).json({
                 ok: false,
                 message: 'La categoria no existe'
             });
